@@ -6,8 +6,8 @@ namespace BehaviourTree.Core
 {
     public abstract class BT_Agent : MonoBehaviour
     {
-        protected RootNode _tree;
-        protected NavMeshAgent _agent;
+        protected RootNode tree;
+        protected NavMeshAgent agent;
         protected enum ActionState{ Idle, Working }
         protected ActionState actionState = ActionState.Idle;
         
@@ -16,9 +16,9 @@ namespace BehaviourTree.Core
         private Vector3 rememberedLocation;
         protected virtual void Start()
         {
-            _agent = GetComponent<NavMeshAgent>();
-            _tree = new RootNode();
-            _waitForSeconds = new WaitForSeconds(Random.Range(0.1f,1));
+            agent = GetComponent<NavMeshAgent>();
+            tree = new RootNode();
+            _waitForSeconds = new WaitForSeconds(0.25f);
             StartCoroutine(Behave());
         }
         
@@ -26,7 +26,7 @@ namespace BehaviourTree.Core
         {
             while (true)
             { 
-                _status = _tree.Process();
+                _status = tree.Process();
                 yield return _waitForSeconds;
             }
         }
@@ -70,10 +70,10 @@ namespace BehaviourTree.Core
             
             if(actionState == ActionState.Idle)
             {
-                _agent.SetDestination(destination);
+                agent.SetDestination(destination);
                 actionState = ActionState.Working;
             }
-            else if(Vector3.Distance(_agent.pathEndPosition, destination) >= 2f)
+            else if(Vector3.Distance(agent.pathEndPosition, destination) >= 2f)
             {
                 actionState = ActionState.Idle;
                 return BT_Status.Failure;

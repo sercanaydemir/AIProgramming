@@ -28,6 +28,11 @@ namespace BehaviourTree.Core
             currentChild = 0;
         }
         
+        public void ClearNodes()
+        {
+            childs.Clear();
+        }
+        
         public void AddChild(BT_Node child)
         {
             childs.Add(child);
