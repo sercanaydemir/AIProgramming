@@ -15,6 +15,13 @@ namespace Ravenholm.Tools.BehaviourTree.Examples
         {
             base.name = name;
         }
+        
+        public void ResetRoot()
+        {
+            childs.Clear();
+            currentChild = 0;
+            proccesForcedSuccess = false;
+        }
 
         public override BT_Status Process()
         {

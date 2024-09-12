@@ -13,6 +13,13 @@ namespace BehaviourTree.Core
 
         public override BT_Status Process()
         {
+            if (proccesForcedSuccess)
+            {
+                proccesForcedSuccess = false;
+                currentChild = 0;
+                return BT_Status.Success;
+            }
+            
             BT_Status childStatus = childs[currentChild].Process();
 
             if (childStatus == BT_Status.Running)

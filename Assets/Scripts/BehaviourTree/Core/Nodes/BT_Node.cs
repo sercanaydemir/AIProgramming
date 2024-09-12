@@ -9,6 +9,7 @@ namespace BehaviourTree.Core
         public int currentChild = 0;
         public string name;
         public int sortOrder;
+        public bool proccesForcedSuccess;
         public BT_Node(){ }
         
         public BT_Node(string name)
@@ -26,6 +27,7 @@ namespace BehaviourTree.Core
         {
             childs.ForEach(x => x.Reset());
             currentChild = 0;
+            proccesForcedSuccess = false;
         }
         
         public void ClearNodes()
@@ -41,6 +43,11 @@ namespace BehaviourTree.Core
         public virtual BT_Status Process()
         {
             return childs[currentChild].Process();
+        }
+        
+        public virtual void ProcessForcedSuccess()
+        {
+            proccesForcedSuccess = true;
         }
         
     }

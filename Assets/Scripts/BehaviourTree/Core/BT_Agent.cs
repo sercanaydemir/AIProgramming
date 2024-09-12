@@ -27,6 +27,7 @@ namespace BehaviourTree.Core
             while (true)
             { 
                 _status = tree.Process();
+                
                 yield return _waitForSeconds;
             }
         }

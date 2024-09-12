@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using NPCs;
 using Ravenholm.Managers;
+using UnityEditor;
 using UnityEngine;
 
 namespace Ravenholm
@@ -9,6 +11,8 @@ namespace Ravenholm
     {
         private List<Notification> notifications = new List<Notification>();
         private DateTime currentDate;
+        private TimeOfDay currentTimeOfDay;
+        private LifeStats _lifeStats;
         private bool hide;
         private void OnGUI()
         {
@@ -17,6 +21,15 @@ namespace Ravenholm
             NotificationPrinter();
             ResourcesPrinter();
             TimePrinter();
+            PrintCharacterLifeStats();
+
+            if (EditorApplication.isPaused)
+            {
+                GUIStyle style = new GUIStyle();
+                style.fontSize = 30;
+                style.normal.textColor = Color.red;
+                GUI.Label(new Rect(Screen.width/2-100, Screen.height/2-50, 200, 100), "PAUSED", style);
+            }
         }
 
         private void NotificationPrinter()
@@ -67,9 +80,17 @@ namespace Ravenholm
             GUIStyle style = new GUIStyle();
             style.fontSize = 20;
 
-            string resources = "Date: " + currentDate.ToShortDateString();
+            string resources = "Date: " + currentDate.ToShortDateString() + " / " + currentDate.Hour +" : " + currentDate.Minute+ "/ Time: " + currentTimeOfDay.ToString();
             
             GUI.Label(new Rect(20, 60,100 ,50), resources, style);
+        }
+
+        private void PrintCharacterLifeStats()
+        {
+            string stats = "Hungry: " + _lifeStats.Hungry.GetStatValue().ToString("F2") + "  Fatigue: " + _lifeStats.Fatigue.GetStatValue().ToString("F2") + 
+                           " Socialize: " + _lifeStats.Social.GetStatValue().ToString("F2") + "  Morale: " + _lifeStats.Morale.GetStatValue().ToString("F2") 
+                           + " CurentState: " +_lifeStats.currentState.ToString();
+            GUI.Label(new Rect(20, 90,90 ,150), stats);
         }
         
         private void AddNotification(Notification notification)
@@ -89,17 +110,32 @@ namespace Ravenholm
             hide = obj;
         }
 
+        private void OnTimeOfDayChanged(TimeOfDay obj)
+        {
+            currentTimeOfDay = obj;
+        }
+        private void SetLifeStats(LifeStats obj)
+        {
+            this._lifeStats = obj;
+        }
         private void OnEnable()
         {
             OnNotificationAdded += AddNotification;
             TimeManager.OnDayChanged += TimeManagerOnOnDayChanged;
+            TimeManager.OnTimeOfDayChanged += OnTimeOfDayChanged;
             OnHide += HideGUI;
+            OnLifeStatsChanged += SetLifeStats;
         }
+
+
+
         private void OnDisable()
         {
             OnNotificationAdded -= AddNotification;
             TimeManager.OnDayChanged -= TimeManagerOnOnDayChanged; 
+            TimeManager.OnTimeOfDayChanged -= OnTimeOfDayChanged;
             OnHide -= HideGUI;
+            OnLifeStatsChanged -= SetLifeStats;
         }
 
         private static event Action<Notification> OnNotificationAdded;
@@ -112,6 +148,12 @@ namespace Ravenholm
         public static void Hide(bool show)
         {
             OnHide?.Invoke(show);
+        }
+        
+        private static event Action<LifeStats> OnLifeStatsChanged;
+        public static void LifeStatsChanged(LifeStats lifeStats)
+        {
+            OnLifeStatsChanged?.Invoke(lifeStats);
         }
     }
     

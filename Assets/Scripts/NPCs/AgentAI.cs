@@ -1,6 +1,11 @@
-﻿using BehaviourTree.Core;
+﻿using System;
+using System.Collections.Generic;
+using BehaviourTree.Core;
+using Ravenholm.Managers;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Utilities;
 
 namespace NPCs
 {
@@ -13,39 +18,21 @@ namespace NPCs
         
         public float workTime = 10f;
         public float remainingWorkTime = 10f;
-
-        public float hungry;
-        public float fatigue;
-        public float social;
-        public float morale;
         
         public float hungryMultiplier = 1f;
         public float fatigueMultiplier = 1f;
         public float socialMultiplier = 1f;
         public float moraleMultiplier = 1f;
-
-        protected override void Start()
+        
+        public LifeStats lifeStats;
+        private AgentState _state;
+        
+        // Agent Life Stats Data Collection
+        CSVWriter csvWriter;
+        private void Awake()
         {
-            base.Start();
-            BuildDayCycle();
+            csvWriter = new CSVWriter();
         }
-
-        void BuildDayCycle()
-        {
-            BT_Sequence dayCycle = new BT_Sequence("Day Cycle");
-            dayCycle.AddChild(BuildEatSequence());
-            dayCycle.AddChild(BuildWorkSequence());
-            dayCycle.AddChild(BuildEatSequence());
-            dayCycle.AddChild(BuildWorkSequence());
-            dayCycle.AddChild(BuildSocializeSequence());
-            dayCycle.AddChild(BuildEatSequence());
-            dayCycle.AddChild(BuildRestSequence());
-            
-            tree.AddChild(dayCycle);
-            tree.PrintTree();
-
-        }
-
 
         #region Eat 
 
@@ -71,10 +58,11 @@ namespace NPCs
         BT_Status Eat()
         {
             Debug.LogError("Eating...");
-            CalculateStatsEatTime();
-            if(hungry<=0)
+            _state = AgentState.Eating;
+
+            if (lifeStats.Hungry.GetStatValue() < 0.2f)
             {
-                Debug.LogWarning("Eating is done! Worker can go to work");
+                Debug.LogError("Hungry is full!");
                 return BT_Status.Success;
             }
             return BT_Status.Running;
@@ -111,13 +99,8 @@ namespace NPCs
         
         public BT_Status Resting()
         {
-            CalculateStatsRestTime();
             Debug.LogError("Resting...");
-            if (fatigue <= 0)
-            {
-                Debug.LogWarning("Resting is done! Worker can go to work");
-                return BT_Status.Success;
-            }
+            _state = AgentState.Resting;
             return BT_Status.Running;
         }
         
@@ -141,21 +124,14 @@ namespace NPCs
 
         private BT_Status GoToSocializePoint()
         {
+            Debug.LogError("Going to socialize point...");
             return GoToLocation(socializePoint.position);
         }
         
         public BT_Status Socialize()
         {
             Debug.LogError("Socializing...");
-            CalculateStatsSocializeTime();
-            
-            if(social >= 100)
-            {
-                Debug.LogWarning("Socializing is done! Worker can go to rest");
-                return BT_Status.Success;
-                
-            }
-            
+            _state = AgentState.Socializing;
             return BT_Status.Running;
         }
         
@@ -183,51 +159,70 @@ namespace NPCs
         
         private BT_Status Work()
         {
-            
-            if(remainingWorkTime > 0)
-            {
-                Debug.LogError("Working...");
-                remainingWorkTime -= Time.deltaTime*50f;
-                CalculateStatsWorkTime();
-                return BT_Status.Running;
-            }
-            remainingWorkTime = workTime;
-            Debug.LogWarning("Working is done! Worker can go to rest");
-            return BT_Status.Success;
+            _state = AgentState.Working;
+            Debug.LogWarning("Working is done! Worker can go to next");
+            return BT_Status.Running;
         }
         
         #endregion
         //-----------------------------------------------------------------------------------
         
-        void CalculateStatsWorkTime()
+        private void OnMinuteChanged()
         {
-            hungry += Time.deltaTime*2;
-            fatigue += Time.deltaTime*3;
-            social -= Time.deltaTime;
-            morale -= Time.deltaTime*2;
+            lifeStats.UpdateStats(_state);
+        }
+        private void OnTimeOfDayChanged(TimeOfDay obj)
+        {
+            //Debug.LogError("Time of day changed! " + obj );
+            if(obj == TimeOfDay.Noon) return;
+            
+            tree.ResetRoot();
+            switch (obj)
+            {
+                case TimeOfDay.BeforeMorning:
+                    tree.AddChild(BuildEatSequence());
+                    break;
+                case TimeOfDay.Morning:
+                    tree.AddChild(BuildWorkSequence());
+                    break;
+                case TimeOfDay.Afternoon:
+                    tree.AddChild(BuildWorkSequence());
+                    break;
+                case TimeOfDay.Evening:
+                    BT_Sequence eveningSequence = new BT_Sequence("Evening Sequence");
+                    eveningSequence.AddChild(BuildEatSequence());
+                    eveningSequence.AddChild(BuildSocializeSequence());
+                    tree.AddChild(eveningSequence);
+                    break;
+                case TimeOfDay.Night:
+                    tree.AddChild(BuildRestSequence());
+                    break;
+            }
+            
+            //Debug.Break();
+            
+            _state = AgentState.None;
+            csvWriter.AddData(TimeManager.Instance.GetCurrentDate().Day,obj.ToString(),lifeStats.Hungry.GetStatValue()
+                ,lifeStats.Fatigue.GetStatValue(),lifeStats.Social.GetStatValue(),lifeStats.Morale.GetStatValue());
+            tree.PrintTree();
+        }
+        //-----------------------------------------------------------------------------------
+        private void OnEnable()
+        {
+            TimeManager.OnMinuteChanged += OnMinuteChanged;
+            TimeManager.OnTimeOfDayChanged += OnTimeOfDayChanged;
+        }
+
+
+        private void OnDisable()
+        {
+            TimeManager.OnMinuteChanged -= OnMinuteChanged;
+            TimeManager.OnTimeOfDayChanged -= OnTimeOfDayChanged;
         }
         
-        void CalculateStatsRestTime()
-        {
-            hungry += Time.deltaTime;
-            fatigue -= Time.deltaTime*fatigueMultiplier;
-            morale += Time.deltaTime;
-        }
-        
-        void CalculateStatsSocializeTime()
-        {
-            hungry += Time.deltaTime;
-            fatigue += Time.deltaTime;
-            social += Time.deltaTime*socialMultiplier;
-            morale += Time.deltaTime;
-        }
-        
-        void CalculateStatsEatTime()
-        {
-            hungry -= Time.deltaTime*hungryMultiplier;
-            fatigue += Time.deltaTime;
-            social += Time.deltaTime;
-            morale += Time.deltaTime;
-        }
+        //-----------------------------------------------------------------------------------
+
     }
+    
+    
 }

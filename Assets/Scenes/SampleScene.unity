@@ -228,14 +228,43 @@ MonoBehaviour:
   socializePoint: {fileID: 903145516}
   workTime: 10
   remainingWorkTime: 10
-  hungry: 50
-  fatigue: 50
-  social: 50
-  morale: 50
   hungryMultiplier: 500
   fatigueMultiplier: 500
   socialMultiplier: 500
   moraleMultiplier: 500
+  lifeStats:
+    Hungry:
+      StatValue: 0.25
+      StatCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+    Fatigue:
+      StatValue: 0.8
+      StatCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+    Social:
+      StatValue: 0.4
+      StatCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+    Morale:
+      StatValue: 0.6
+      StatCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
 --- !u!1 &394540105
 GameObject:
   m_ObjectHideFlags: 0
@@ -747,7 +776,7 @@ Transform:
   m_GameObject: {fileID: 761871092}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.025000006, y: 0.065502584, z: 0.19729784}
+  m_LocalPosition: {x: 0.02500001, y: 0.06550258, z: 0.1972978}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -910,7 +939,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ab3faba1b85bce4eb9a34059284c41b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  secondsPerDay: 1440
+  secondsPerHour: 5
 --- !u!4 &1097911203
 Transform:
   m_ObjectHideFlags: 0
@@ -920,7 +949,7 @@ Transform:
   m_GameObject: {fileID: 1097911201}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.81627, y: -8.645945, z: 27.476213}
+  m_LocalPosition: {x: 13.81627, y: -8.645945, z: 27.47621}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
