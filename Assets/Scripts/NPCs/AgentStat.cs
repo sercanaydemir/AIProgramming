@@ -32,5 +32,10 @@ namespace NPCs
             StatValue -= value;
             StatValue = Mathf.Clamp(StatValue, 0, 1);
         }
+        
+        public float GetStatValueForCurve()
+        {
+            return StatCurve.Evaluate(StatValue);
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace NPCs
                     Social.DecreaseStat(0.001f + socialImpact);
                     break;
                 case AgentState.Socializing:
-                    Socializing(2);
+                    Socializing(1.5f);
                     Fatigue.IncreaseStat(0.0045f + fatigueImpact);
                     Hungry.IncreaseStat(0.007f + hungryImpact);
                     break;
@@ -47,11 +47,14 @@ namespace NPCs
                 case AgentState.None:
                     Hungry.IncreaseStat(0.003f + hungryImpact);
                     Fatigue.IncreaseStat(0.0015f + fatigueImpact);
+                    Social.DecreaseStat(0.001f + socialImpact);
                     break;
             }
             
-            //Morale.SetStatValue(Morale.GetStatValue() - fatigueImpact - hungryImpact + socialImpact);
-
+            Morale.SetStatValue(Social.GetStatValue()*0.75f - Fatigue.GetStatValueForCurve() - Hungry.GetStatValueForCurve());
+            
+            Debug.LogError("Hungry: " + Hungry.GetStatValueForCurve());
+            Debug.LogError("Fatigue: " + Fatigue.GetStatValueForCurve());
             
             GUIPrinter.LifeStatsChanged(this);
         }
@@ -73,7 +76,7 @@ namespace NPCs
 
         public float CalculateMoraleStatWithAllStats()
         {
-            return Fatigue.GetStatValue() * 0.003f + Social.GetStatValue() * 0.002f + Hungry.GetStatValue() * 0.001f;
+            return Social.GetStatValue() * 0.0025f + Fatigue.GetStatValueForCurve()  + Hungry.GetStatValueForCurve();
         }
         
         public void Eating(float  multiplier = 1)
