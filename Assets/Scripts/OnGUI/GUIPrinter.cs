@@ -89,7 +89,7 @@ namespace Ravenholm
         {
             string stats = "Hungry: " + _lifeStats.Hungry.GetStatValue().ToString("F2") + "  Fatigue: " + _lifeStats.Fatigue.GetStatValue().ToString("F2") + 
                            " Socialize: " + _lifeStats.Social.GetStatValue().ToString("F2") + "  Morale: " + _lifeStats.Morale.GetStatValue().ToString("F2") 
-                           + " CurentState: " +_lifeStats.currentState.ToString();
+                           + " CurentState: " +_lifeStats.currentState.ToString() + "    Health: " + (_lifeStats.Health.Health*100).ToString("F2");
             GUI.Label(new Rect(20, 90,90 ,150), stats);
         }
         

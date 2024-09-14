@@ -226,16 +226,10 @@ MonoBehaviour:
   eatPoint: {fileID: 350759435}
   restPoint: {fileID: 1814272137}
   socializePoint: {fileID: 903145516}
-  workTime: 10
-  remainingWorkTime: 10
-  hungryMultiplier: 500
-  fatigueMultiplier: 500
-  socialMultiplier: 500
-  moraleMultiplier: 500
   lifeStats:
     Hungry:
       StatValue: 0.25
-      StatCurve:
+      <StatCurve>k__BackingField:
         serializedVersion: 2
         m_Curve:
         - serializedVersion: 3
@@ -259,9 +253,14 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      _healthPenalty:
+        penalty: 1.15
+        penaltyLimit: 0.7
+        isPenaltyActive: 1
+        isBiggerLimit: 1
     Fatigue:
       StatValue: 0.6
-      StatCurve:
+      <StatCurve>k__BackingField:
         serializedVersion: 2
         m_Curve:
         - serializedVersion: 3
@@ -285,23 +284,39 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      _healthPenalty:
+        penalty: 1.1
+        penaltyLimit: 0.8
+        isPenaltyActive: 1
+        isBiggerLimit: 1
     Social:
       StatValue: 0.6
-      StatCurve:
+      <StatCurve>k__BackingField:
         serializedVersion: 2
         m_Curve: []
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      _healthPenalty:
+        penalty: 1
+        penaltyLimit: 0
+        isPenaltyActive: 0
+        isBiggerLimit: 0
     Morale:
       StatValue: 0.6
-      StatCurve:
+      <StatCurve>k__BackingField:
         serializedVersion: 2
         m_Curve: []
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      _healthPenalty:
+        penalty: 1.05
+        penaltyLimit: 0.3
+        isPenaltyActive: 1
+        isBiggerLimit: 0
     currentState: 0
+  <Health>k__BackingField: 1
 --- !u!1 &394540105
 GameObject:
   m_ObjectHideFlags: 0

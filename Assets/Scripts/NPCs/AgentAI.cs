@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BehaviourTree.Core;
+using NPCs.Interfaces;
 using Ravenholm.Managers;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
@@ -9,29 +10,25 @@ using Utilities;
 
 namespace NPCs
 {
-    public class AgentAI : BT_Agent
+    public class AgentAI : BT_Agent,IHealth
     {
         public Transform workPoint;
         public Transform eatPoint;
         public Transform restPoint;
         public Transform socializePoint;
         
-        public float workTime = 10f;
-        public float remainingWorkTime = 10f;
-        
-        public float hungryMultiplier = 1f;
-        public float fatigueMultiplier = 1f;
-        public float socialMultiplier = 1f;
-        public float moraleMultiplier = 1f;
-        
         public LifeStats lifeStats;
         private AgentState _state;
         
+        [field: SerializeField] public float Health { get; set; }
+
         // Agent Life Stats Data Collection
         CSVWriter csvWriter;
         private void Awake()
         {
             csvWriter = new CSVWriter();
+            
+            lifeStats.SetIHealth(this);
         }
 
         #region Eat 
@@ -203,25 +200,87 @@ namespace NPCs
             
             _state = AgentState.None;
             csvWriter.AddData(TimeManager.Instance.GetCurrentDate().Day,obj.ToString(),lifeStats.Hungry.GetStatValue()
-                ,lifeStats.Fatigue.GetStatValue(),lifeStats.Social.GetStatValue(),lifeStats.Morale.GetStatValue());
+                ,lifeStats.Fatigue.GetStatValue(),lifeStats.Social.GetStatValue(),lifeStats.Morale.GetStatValue(),Health);
             tree.PrintTree();
         }
+
+        #region IHealth Implementation
+        public void TakeDamage(float damage)
+        {
+            Health -= CalculateHealthPenaltyForDamage(damage);
+            if (IsDead())
+            {
+                AgentDeath();
+                Health = Mathf.Clamp(Health, 0, 1);
+            }
+        }
+
+        public void Heal(float amount)
+        {
+            Health += amount;
+            Health = Mathf.Clamp(Health, 0, 1);
+        }
+
+        public bool IsDead()
+        {
+            if (Health <= 0)
+            {
+                //TODO: Implement agent death actions here
+                
+                Debug.LogError("Agent is dead! " + this.name,transform);
+                return true;
+            }
+
+            return false;
+        }
+        private void OnAgentDeath(AgentAI obj)
+        {
+            
+        }
+        
+        private float CalculateHealthPenaltyForDamage(float damage)
+        {
+            string takeDamage = "Before taken penalty impact:" + damage.ToString();
+            
+            damage *= lifeStats.MoralePenaltyForHealth();
+            damage *= lifeStats.FatiguePenaltyForHealth();
+            damage *= lifeStats.HungryPenaltyForHealth();
+            
+            takeDamage += " After taken penalty impact:" + damage.ToString() + " MoralePenalty " + lifeStats.MoralePenaltyForHealth() 
+                          + " FatiguePenalty " + lifeStats.FatiguePenaltyForHealth() + " HungryPenalty " + lifeStats.HungryPenaltyForHealth();
+            
+            Debug.LogError(takeDamage);
+            return damage;
+        }
+        
+        #endregion
+        
         //-----------------------------------------------------------------------------------
         private void OnEnable()
         {
             TimeManager.OnMinuteChanged += OnMinuteChanged;
             TimeManager.OnTimeOfDayChanged += OnTimeOfDayChanged;
+            AgentDeathEvent += OnAgentDeath;
         }
-
-
         private void OnDisable()
         {
             TimeManager.OnMinuteChanged -= OnMinuteChanged;
             TimeManager.OnTimeOfDayChanged -= OnTimeOfDayChanged;
+            AgentDeathEvent -= OnAgentDeath;
         }
         
         //-----------------------------------------------------------------------------------
 
+        #region events
+
+        public static event Action<AgentAI> AgentDeathEvent;
+        
+        private void AgentDeath()
+        {
+            AgentDeathEvent?.Invoke(this);
+        }
+
+        #endregion
     }
     
     

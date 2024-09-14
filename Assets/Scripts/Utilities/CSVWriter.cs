@@ -15,6 +15,7 @@ public class CSVWriter
         public float fatigue;
         public float social;
         public float morale;
+        public float health;
     }
 
     // Bir liste oluşturuyoruz
@@ -29,12 +30,12 @@ public class CSVWriter
         Debug.LogError("path: " + filePath);
         
         // İlk satıra başlıkları yazıyoruz
-        writer.WriteLine("Day;Day Time;Hungry;Fatigue,Social;Morale");
+        writer.WriteLine("Day;Day Time;Hungry;Fatigue;Social;Morale;Health");
 
         // Her bir veriyi CSV formatında yazıyoruz
         foreach (PlayerData data in playerDataList)
         {
-            string line = $"{data.day};{data.dayTime};{data.hungry};{data.fatigue};{data.social};{data.morale}";
+            string line = $"{data.day};{data.dayTime};{data.hungry};{data.fatigue};{data.social};{data.morale};{data.health}";
             writer.WriteLine(line);
         }
 
@@ -44,7 +45,7 @@ public class CSVWriter
         Debug.Log($"Veriler {filePath} adresine kaydedildi.");
     }
     
-    public void AddData(int day, string dayTime, float hungry, float fatigue, float social, float morale)
+    public void AddData(int day, string dayTime, float hungry, float fatigue, float social, float morale,float health)
     {
         PlayerData newData = new PlayerData();
         newData.day = day;
@@ -53,7 +54,7 @@ public class CSVWriter
         newData.fatigue = fatigue;
         newData.social = social;
         newData.morale = morale;
-
+        newData.health = health;
         playerDataList.Add(newData); // Listeye veri ekleme
         SaveCSV(); // Her veri eklendiğinde CSV'yi kaydetme
 

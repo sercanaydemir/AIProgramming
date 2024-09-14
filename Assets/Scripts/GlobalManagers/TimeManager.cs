@@ -91,11 +91,9 @@ namespace Ravenholm.Managers
                     _timeOfDay = GetTimeOfDay();
                     OnTimeOfDayChanged?.Invoke(_timeOfDay);
                 }
-                Debug.LogError("wtf");
                 
                 if(_hour >= 24)
                 {
-                    _currentDate = _currentDate.AddDays(1);
                     _hour = 0;
                     _tempHour = 0;
                     OnDayChanged?.Invoke(_currentDate);
