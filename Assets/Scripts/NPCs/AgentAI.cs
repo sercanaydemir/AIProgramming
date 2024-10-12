@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using BehaviourTree.Core;
 using NPCs.Interfaces;
 using Ravenholm.Managers;
+using Ravenholm.Tools.BehaviourTree.Examples;
+using Test_Simulation.WorkSystem;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -18,17 +20,43 @@ namespace NPCs
         public Transform socializePoint;
         
         public LifeStats lifeStats;
-        private AgentState _state;
         
+        protected AgentState _state;
+        public WorkerType workerType;
+        public WorkerBase worker;
         [field: SerializeField] public float Health { get; set; }
 
         // Agent Life Stats Data Collection
         CSVWriter csvWriter;
-        private void Awake()
+        protected virtual void Awake()
         {
             csvWriter = new CSVWriter();
             
             lifeStats.SetIHealth(this);
+            
+            DecideWork();
+        }
+        
+        private void DecideWork()
+        {
+            // switch (workerType)
+            // {
+            //     case WorkerType.Hunter:
+            //         worker = new Hunter();
+            //         break;
+            //     case WorkerType.Miner:
+            //         worker = new Miner();
+            //         break;
+            //     case WorkerType.Chef:
+            //         worker = new Chef();
+            //         break;
+            //     case WorkerType.WoodCutter:
+            //         worker = new WoodCutter();
+            //         break;
+            //     case WorkerType.Gatherer:
+            //         worker = new Gatherer();
+            //         break;
+            // }
         }
 
         #region Eat 
@@ -56,7 +84,7 @@ namespace NPCs
         {
             Debug.LogError("Eating...");
             _state = AgentState.Eating;
-
+            OnAgentStateChange(_state);
             if (lifeStats.Hungry.GetStatValue() < 0.2f)
             {
                 Debug.LogError("Hungry is full!");
@@ -98,6 +126,7 @@ namespace NPCs
         {
             Debug.LogError("Resting...");
             _state = AgentState.Resting;
+            OnAgentStateChange(_state);
             return BT_Status.Running;
         }
         
@@ -129,6 +158,7 @@ namespace NPCs
         {
             Debug.LogError("Socializing...");
             _state = AgentState.Socializing;
+            OnAgentStateChange(_state);
             return BT_Status.Running;
         }
         
@@ -138,28 +168,24 @@ namespace NPCs
 
         #region Work Sequence
         
-        BT_Sequence BuildWorkSequence()
+        protected virtual BT_Sequence BuildWorkSequence()
         {
             BT_Sequence workingSequence = new BT_Sequence("Working Sequence");
-            BT_Leaf goToWorkPoint = new BT_Leaf("Go To Work Point", GoToWorkPoint);
-            BT_Leaf work = new BT_Leaf("Work", Work);
-            
-            workingSequence.AddChild(goToWorkPoint);
-            workingSequence.AddChild(work);
             return workingSequence;
         }
 
-        private BT_Status GoToWorkPoint()
-        {
-            return GoToLocation(workPoint.position);
-        }
-        
-        private BT_Status Work()
-        {
-            _state = AgentState.Working;
-            Debug.LogWarning("Working is done! Worker can go to next");
-            return BT_Status.Running;
-        }
+        // protected BT_Status GoToWorkPoint()
+        // {
+        //     return GoToLocation(workPoint.position);
+        // }
+        //
+        // protected virtual BT_Status Work()
+        // {
+        //     _state = AgentState.Working;
+        //     OnAgentStateChange(_state);
+        //     Debug.LogWarning("Working is done! Worker can go to next");
+        //     return BT_Status.Running;
+        // }
         
         #endregion
         //-----------------------------------------------------------------------------------
@@ -170,9 +196,9 @@ namespace NPCs
         }
         private void OnTimeOfDayChanged(TimeOfDay obj)
         {
-            //Debug.LogError("Time of day changed! " + obj );
             if(obj == TimeOfDay.Noon) return;
             
+            if(tree == null) tree = new RootNode();
             tree.ResetRoot();
             switch (obj)
             {
@@ -199,10 +225,13 @@ namespace NPCs
             //Debug.Break();
             
             _state = AgentState.None;
+            OnAgentStateChange(_state);
             csvWriter.AddData(TimeManager.Instance.GetCurrentDate().Day,obj.ToString(),lifeStats.Hungry.GetStatValue()
                 ,lifeStats.Fatigue.GetStatValue(),lifeStats.Social.GetStatValue(),lifeStats.Morale.GetStatValue(),Health);
             tree.PrintTree();
         }
+        
+        
 
         #region IHealth Implementation
         public void TakeDamage(float damage)
@@ -279,7 +308,13 @@ namespace NPCs
         {
             AgentDeathEvent?.Invoke(this);
         }
-
+        
+        public event Action<AgentState> OnAgentStateChanged;
+        private void OnAgentStateChange(AgentState state)
+        {
+            OnAgentStateChanged?.Invoke(state);
+        }
+        
         #endregion
     }
     

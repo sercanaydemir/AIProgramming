@@ -27,12 +27,13 @@ namespace Ravenholm.Managers
                 Destroy(gameObject);
             }
 
-            _currentDate = new DateTime(2184, 3, 24); // Example start date
+            _currentDate = new DateTime(2184, 3, 24,6,00,00); // Example start date
             
         }
 
         private void Start()
         {
+            _hour = _currentDate.Hour;
             _timeOfDay = GetTimeOfDay();
             OnMinuteChanged?.Invoke();
             OnHourChanged?.Invoke();
@@ -103,7 +104,7 @@ namespace Ravenholm.Managers
         
         private TimeOfDay GetTimeOfDay()
         {
-            return _hour switch
+            return _currentDate.Hour switch
             {
                 >= 6 and < 9 => TimeOfDay.BeforeMorning,
                 >= 9 and < 12 => TimeOfDay.Morning,
